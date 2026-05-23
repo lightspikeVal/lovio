@@ -1,0 +1,19 @@
+{
+  "name": "discord-ai-bot",
+  "version": "1.0.0",
+  "description": "Discord bot with AI responses and image generation",
+  "main": "aibot-discord.js",
+  "scripts": {
+    "start": "node aibot-discord.js",
+    "dev": "node --watch aibot-discord.js"
+  },
+  "keywords": ["discord", "bot", "ai", "mistral", "grok"],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "discord.js": "^14.14.1",
+    "openai": "^4.52.7",
+    "pg": "^8.11.3",
+    "dotenv": "^16.3.1"
+  }
+}
