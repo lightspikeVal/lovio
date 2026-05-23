@@ -241,6 +241,18 @@ const commands = [
 client.once('ready', async () => {
   console.log(`[v0] Bot logged in as ${client.user.tag}`);
 
+  // Set bot status
+  await client.user.setPresence({
+    activities: [
+      {
+        name: '@lovio for AI responses',
+        type: 'LISTENING',
+      },
+    ],
+    status: 'online',
+  });
+  console.log('[v0] Bot status set to: Listening to @lovio for AI responses');
+
   // Register slash commands
   try {
     const rest = new REST({ version: '10' }).setToken(process.env.DISCORD_TOKEN);
@@ -274,7 +286,7 @@ client.on('interactionCreate', async (interaction) => {
       if (aiStatus.error || imageStatus.error) {
         await interaction.reply({
           content: '❌ Error retrieving quota information.',
-          ephemeral: true,
+          flags: 64,
         });
         return;
       }
@@ -298,13 +310,13 @@ client.on('interactionCreate', async (interaction) => {
 
       await interaction.reply({
         embeds: [embed],
-        ephemeral: true,
+        flags: 64,
       });
     } catch (err) {
       console.error('[v0] Error in /balance command:', err);
       await interaction.reply({
         content: '❌ Error retrieving quota information.',
-        ephemeral: true,
+        flags: 64,
       });
     }
   } else if (interaction.commandName === 'image') {
@@ -352,10 +364,11 @@ client.on('interactionCreate', async (interaction) => {
 // ======================
 
 client.on('messageCreate', async (message) => {
-  // Ignore bot messages and DMs
+  // Ignore bot messages
   if (message.author.bot) return;
 
-  if (message.isDirect()) {
+  // Check if message is from DM (channel type is DM)
+  if (message.channel.type === 'DM') {
     try {
       await message.reply('❌ I do not accept direct messages. Please use me in a server.');
     } catch (err) {
