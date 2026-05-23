@@ -1,7 +1,8 @@
 require('dotenv').config();
-const { Client, GatewayIntentBits, REST, Routes, SlashCommandBuilder, EmbedBuilder } = require('discord.js');
+const { Client, GatewayIntentBits, REST, Routes, SlashCommandBuilder, EmbedBuilder, ActivityType } = require('discord.js');
 const { Pool } = require('pg');
 const OpenAI = require('openai');
+const http = require('http');
 
 // ======================
 // DATABASE SETUP
@@ -167,7 +168,7 @@ async function incrementQuota(userId, quotaType) {
 
 async function getAIResponse(userMessage) {
   try {
-    const response = await openai.messages.create({
+    const response = await openai.chat.completions.create({
       model: 'mistral/mistral-small',
       max_tokens: 1024,
       messages: [
@@ -178,7 +179,7 @@ async function getAIResponse(userMessage) {
       ],
     });
 
-    return response.content[0].text;
+    return response.choices[0].message.content;
   } catch (err) {
     console.error('[v0] Error getting AI response:', err);
     throw err;
@@ -246,7 +247,7 @@ client.once('ready', async () => {
     activities: [
       {
         name: '@lovio for AI responses',
-        type: 'LISTENING',
+        type: ActivityType.Listening,
       },
     ],
     status: 'online',
@@ -441,6 +442,26 @@ client.on('error', (error) => {
 
 process.on('unhandledRejection', (reason, promise) => {
   console.error('[v0] Unhandled Rejection at:', promise, 'reason:', reason);
+});
+
+// ======================
+// HTTP SERVER (Health Check)
+// ======================
+
+const PORT = process.env.PORT || 3000;
+
+const server = http.createServer((req, res) => {
+  if (req.url === '/health' && req.method === 'GET') {
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({ status: 'ok', bot: client.user ? client.user.tag : 'disconnected' }));
+  } else {
+    res.writeHead(404, { 'Content-Type': 'application/json' });
+    res.end(JSON.stringify({ error: 'Not Found' }));
+  }
+});
+
+server.listen(PORT, () => {
+  console.log(`[v0] Health check server listening on port ${PORT}`);
 });
 
 // ======================
